@@ -8,5 +8,4 @@ remote.Name = "Remote"
 remote.Parent = ReplicatedStorage
 
 remote.OnServerEvent:Connect(function(player, attack, pivot)
-	print(pivot)
 end)
