@@ -68,12 +68,11 @@ local function shoot(origin: CFrame, target: CFrame, character: Model)--, root: 
 	end)
 end
 
-return function(self, character: Model)
-	local root = character.HumanoidRootPart
+return function(self, character: Model, origin: CFrame, target: CFrame)
+	local root = character:FindFirstChild("HumanoidRootPart")
 	if not root then
 		return
 	end
 
-	local target = Players.LocalPlayer:GetMouse().Hit :: CFrame
-	shoot(root.CFrame, target, character)
+	shoot(origin, target, character)
 end

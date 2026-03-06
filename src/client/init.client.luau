@@ -16,21 +16,39 @@ local function loadModules(source: Instance)
 	return modules
 end
 
-local Skills = loadModules(ReplicatedStorage.Shared.Skills)
+local skills = loadModules(ReplicatedStorage.Shared.Skills)
+local player = Players.LocalPlayer
 
 -- Network
 local remote = ReplicatedStorage:WaitForChild("Remote") :: RemoteEvent
-local fireball = workspace:WaitForChild("Fireball") :: Model
 
-
-UserInputService.InputBegan:Connect(function(input: InputObject)
-	if Players.LocalPlayer == nil or Players.LocalPlayer.Character == nil then
+-- Sending (when you press Q)
+UserInputService.InputBegan:Connect(function(input: InputObject, gamepProcessed: boolean)
+	if gamepProcessed or not player.Character then
 		return
 	end
 
 	if input.KeyCode == Enum.KeyCode.Q then
-		local position = fireball:GetPivot()
-		Skills:Fireball(Players.LocalPlayer.Character)
-		remote:FireServer("Fireball", position)
+		local character = player.Character
+		local root = character:FindFirstChild("HumanoidRootPart")
+		if not root then
+			return
+		end
+		
+		local origin = root.CFrame
+		local target = player:GetMouse().Hit
+
+		-- local position = fireball:GetPivot()
+		skills:Fireball(player.Character, origin, target)
+		remote:FireServer(origin, target)
 	end
+end)
+
+-- Receiving (when someone else sends a fireball)
+remote.OnClientEvent:Connect(function(shooter: Player, origin: CFrame, target: CFrame)
+	if player == shooter then
+		return
+	end
+
+	skills:Fireball(shooter.Character, origin, target)
 end)
