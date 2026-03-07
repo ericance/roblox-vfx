@@ -1,6 +1,9 @@
+--[[
+	Fireball - Shoots a fireball towards an enemy that spins and explodes when it hits something, or goes the max distance of 50 studs.
+]]
+
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
 local Debris = game:GetService("Debris")
 
 local function explode(orange: MeshPart, yellow: MeshPart, explosionCFrame: CFrame)

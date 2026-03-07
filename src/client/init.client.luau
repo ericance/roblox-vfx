@@ -1,26 +1,19 @@
+--[[
+	Client - The entry point for the Roblox client that sets up UserInput
+]]
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
 
 -- Dependencies
-local function loadModules(source: Instance)
-	local modules = {}
+local loadModules = require(ReplicatedStorage.Shared.Functions.loadModules)
+local Skills = loadModules(ReplicatedStorage.Shared.Skills)
 
-	for _, module in source:GetChildren() do
-		if not module:IsA("ModuleScript") then
-			continue
-		end
-		modules[module.Name] = require(module)
-	end
-
-	return modules
-end
-
-local skills = loadModules(ReplicatedStorage.Shared.Skills)
 local player = Players.LocalPlayer
 
 -- Network
-local remote = ReplicatedStorage:WaitForChild("Remote") :: RemoteEvent
+local Remote = ReplicatedStorage:WaitForChild("Remote") :: RemoteEvent
 
 -- Sending (when you press Q)
 UserInputService.InputBegan:Connect(function(input: InputObject, gamepProcessed: boolean)
@@ -28,6 +21,7 @@ UserInputService.InputBegan:Connect(function(input: InputObject, gamepProcessed:
 		return
 	end
 
+	-- this should fire the skill 
 	if input.KeyCode == Enum.KeyCode.Q then
 		local character = player.Character
 		local root = character:FindFirstChild("HumanoidRootPart")
@@ -39,16 +33,20 @@ UserInputService.InputBegan:Connect(function(input: InputObject, gamepProcessed:
 		local target = player:GetMouse().Hit
 
 		-- local position = fireball:GetPivot()
-		skills:Fireball(player.Character, origin, target)
-		remote:FireServer(origin, target)
+		Skills:Fireball(player.Character, origin, target)
+		Remote:FireServer(origin, target)
+	end
+	
+	-- this should switch the skill
+	if input.KeyCode == Enum.KeyCode.E then
 	end
 end)
 
 -- Receiving (when someone else sends a fireball)
-remote.OnClientEvent:Connect(function(shooter: Player, origin: CFrame, target: CFrame)
+Remote.OnClientEvent:Connect(function(shooter: Player, origin: CFrame, target: CFrame)
 	if player == shooter then
 		return
 	end
 
-	skills:Fireball(shooter.Character, origin, target)
+	Skills:Fireball(shooter.Character, origin, target)
 end)

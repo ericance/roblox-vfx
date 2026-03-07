@@ -1,3 +1,8 @@
+--[[
+	Server - The entry point for the server 
+	- Manages backend data using DataStore
+	- Handles all client request
+]]
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- Dependencies
