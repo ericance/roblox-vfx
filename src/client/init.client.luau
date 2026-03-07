@@ -10,43 +10,44 @@ local Players = game:GetService("Players")
 local loadModules = require(ReplicatedStorage.Shared.Functions.loadModules)
 local Skills = loadModules(ReplicatedStorage.Shared.Skills)
 
-local player = Players.LocalPlayer
-
 -- Network
-local Remote = ReplicatedStorage:WaitForChild("Remote") :: RemoteEvent
+local remote = ReplicatedStorage:WaitForChild("Remote") :: RemoteEvent
+
+-- Variables
+local activeSkill = "Fireball"
+local skillNames = {}
+for skillName, _ in pairs(Skills) do
+	table.insert(skillNames, skillName)
+end
+table.sort(skillNames)
 
 -- Sending (when you press Q)
 UserInputService.InputBegan:Connect(function(input: InputObject, gamepProcessed: boolean)
-	if gamepProcessed or not player.Character then
+	if gamepProcessed or not Players.LocalPlayer.Character then
 		return
 	end
 
-	-- this should fire the skill 
 	if input.KeyCode == Enum.KeyCode.Q then
-		local character = player.Character
-		local root = character:FindFirstChild("HumanoidRootPart")
-		if not root then
-			return
+		-- activate skill
+		local clientData = Skills[activeSkill]:OnActivate()
+		remote:FireServer(activeSkill, clientData)
+	elseif input.KeyCode == Enum.KeyCode.E then
+		-- switch the skill
+		local currentIndex = table.find(skillNames, activeSkill)
+		if currentIndex then
+			-- modulo returns 0 for the same number
+			-- so current % total is a perfect loop
+			local nextIndex = (currentIndex % #skillNames) + 1
+			activeSkill = skillNames[nextIndex]
 		end
-		
-		local origin = root.CFrame
-		local target = player:GetMouse().Hit
-
-		-- local position = fireball:GetPivot()
-		Skills:Fireball(player.Character, origin, target)
-		Remote:FireServer(origin, target)
-	end
-	
-	-- this should switch the skill
-	if input.KeyCode == Enum.KeyCode.E then
 	end
 end)
 
 -- Receiving (when someone else sends a fireball)
-Remote.OnClientEvent:Connect(function(shooter: Player, origin: CFrame, target: CFrame)
-	if player == shooter then
+remote.OnClientEvent:Connect(function(player: Player, skill: string, clientData: { any })
+	if Players.LocalPlayer == player then
 		return
 	end
 
-	Skills:Fireball(shooter.Character, origin, target)
+	Skills[activeSkill]:OnMass(player, skill, clientData)
 end)

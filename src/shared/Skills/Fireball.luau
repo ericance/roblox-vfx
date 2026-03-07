@@ -5,6 +5,9 @@
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local Debris = game:GetService("Debris")
+local Players = game:GetService("Players")
+
+local Fireball = {}
 
 local function explode(orange: MeshPart, yellow: MeshPart, explosionCFrame: CFrame)
 	local orangeClone = orange:Clone()
@@ -71,11 +74,30 @@ local function shoot(origin: CFrame, target: CFrame, character: Model)--, root: 
 	end)
 end
 
-return function(self, character: Model, origin: CFrame, target: CFrame)
+function Fireball:OnActivate()
+	local character = Players.LocalPlayer.Character
 	local root = character:FindFirstChild("HumanoidRootPart")
 	if not root then
 		return
 	end
 
+	local origin = root.CFrame
+	local target = Players.LocalPlayer:GetMouse().Hit
+
 	shoot(origin, target, character)
+	return {
+		Origin = origin,
+		Target = target
+	}
 end
+
+function Fireball:OnMass(player: Player, skill: string, clientData: { any })
+	local character = player.Character
+	local root = character:FindFirstChild("HumanoidRootPart")
+	if not root then
+		return
+	end
+	shoot(clientData.Origin, clientData.Target, character)
+end
+
+return Fireball
