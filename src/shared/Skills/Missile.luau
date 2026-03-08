@@ -1,7 +1,9 @@
 --[[
-	HomingMissile - A skill that fires a guided explosive after targeting a player
+	HomingMissile - Has a dumbFireDuration to fly straight for a second before seeing if a player is targeted. If a player is targeted, then that player will have a crosshair appear on their character. The homing missile will have a 4 second lockOnDuration to escape the missile which moves towards their direction
+
 ]]
 
+local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local Debris = game:GetService("Debris")
@@ -31,8 +33,30 @@ local function explode(missile: Model, crosshair: BillboardGui?)
 	if crosshair ~= nil then
 		crosshair:Destroy()
 	end
-	missile:Destroy()
-	-- Debris:AddItem(missile, 1)
+	if missile == nil then
+		return
+	end
+	
+	local part = missile.Part
+	missile.Back.Transparency = 1
+	part.Transparency = 1
+
+	local ring = part:FindFirstChild("Ring").ParticleEmitter
+	ring:Emit()
+	task.wait(0.1)
+	
+	local size = math.random(10, 40)
+	local explosion = missile["Explosion"]
+	local tweenInfo = TweenInfo.new(0.75, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+	for _, part in explosion:GetChildren() do
+		TweenService:Create(part, tweenInfo, {
+			Size = Vector3.new(size, size, size),
+			Transparency = 0,
+		}):Play()
+	end
+
+	-- missile:Destroy()
+	Debris:AddItem(missile, 1)
 end
 
 local function launch(origin: CFrame, target: Model, crosshair: BillboardGui?, shooterCharacter: Model)
@@ -50,8 +74,11 @@ local function launch(origin: CFrame, target: Model, crosshair: BillboardGui?, s
 	local dumbFireDuration = 1
 	local lockOnDuration  = 4
 	local timePassed = 0
-	local speed = 50
+
+	local acceleration = 60
+	local maxSpeed = 300
 	local turnSpeed = 5
+	local speed = 50
 
 	local raycastParams = RaycastParams.new()
 	raycastParams.FilterType = Enum.RaycastFilterType.Exclude
@@ -60,6 +87,7 @@ local function launch(origin: CFrame, target: Model, crosshair: BillboardGui?, s
 	local heartbeatConnection; heartbeatConnection = RunService.Heartbeat:Connect(function(dt)
 		timePassed += dt
 		
+		local speed = math.min(speed + (acceleration * dt), maxSpeed)
 		local currentCFrame: CFrame = missile:GetPivot() 
 		local nextCFrame: CFrame -- where the missile "wants" to go this frame
 
@@ -86,6 +114,7 @@ local function launch(origin: CFrame, target: Model, crosshair: BillboardGui?, s
 		if timePassed >= lockOnDuration then
 			heartbeatConnection:Disconnect()
 			explode(missile, crosshair)
+			return -- so it doesn't run the raycast after exploding
 		end
 		
 		-- Check if the missile hits something
