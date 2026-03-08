@@ -8,18 +8,25 @@ local Players = game:GetService("Players")
 
 -- Dependencies
 local loadModules = require(ReplicatedStorage.Shared.Functions.loadModules)
+local updateViewport = require(ReplicatedStorage.Shared.Functions.updateViewport)
 local Skills = loadModules(ReplicatedStorage.Shared.Skills)
 
 -- Network
 local remote = ReplicatedStorage:WaitForChild("Remote") :: RemoteEvent
 
 -- Variables
+local skill: Frame = Players.LocalPlayer.PlayerGui:WaitForChild("ScreenGui").Skills:FindFirstChild("1")
 local activeSkill = "Fireball"
 local skillNames = {}
 for skillName, _ in pairs(Skills) do
 	table.insert(skillNames, skillName)
 end
 table.sort(skillNames)
+
+local function updateSkillGui(skillName: string)
+	updateViewport(skillName, skill.ViewportFrame)
+	skill:FindFirstChild("Title").Text = skillName
+end
 
 -- Sending (when you press Q)
 UserInputService.InputBegan:Connect(function(input: InputObject, gamepProcessed: boolean)
@@ -39,6 +46,7 @@ UserInputService.InputBegan:Connect(function(input: InputObject, gamepProcessed:
 			-- so current % total is a perfect loop
 			local nextIndex = (currentIndex % #skillNames) + 1
 			activeSkill = skillNames[nextIndex]
+			updateSkillGui(activeSkill)
 		end
 	end
 end)
@@ -49,5 +57,5 @@ remote.OnClientEvent:Connect(function(player: Player, skill: string, clientData:
 		return
 	end
 
-	Skills[activeSkill]:OnMass(player, skill, clientData)
+	Skills[skill]:OnMass(player, skill, clientData)
 end)

@@ -45,7 +45,7 @@ local function shoot(origin: CFrame, target: CFrame, character: Model)--, root: 
 	raycastParams.FilterType = Enum.RaycastFilterType.Exclude
 	raycastParams.FilterDescendantsInstances = {character}
 
-	local fireball: Model = workspace.Fireball:Clone()
+	local fireball: Model = workspace.VFX.Fireball:Clone()
 	fireball:PivotTo(CFrame.new(origin.Position, target.Position))
 	fireball.Parent = workspace.VFX
 	local fireballCFrame
