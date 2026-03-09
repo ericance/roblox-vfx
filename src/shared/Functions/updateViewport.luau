@@ -12,7 +12,7 @@ return function(skillName: string, viewportFrame: ViewportFrame)
 	viewportFrameClone.Parent = viewportFrame.Parent
 	viewportFrame:Destroy()
 
-	local skillInstance = workspace.VFX:FindFirstChild(skillName)
+	local skillInstance = workspace.VFX:WaitForChild(skillName)
 	if skillInstance == nil then
 		warn("No skill found named " .. skillName)
 		return

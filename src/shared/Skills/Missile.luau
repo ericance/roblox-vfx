@@ -43,7 +43,7 @@ local function explode(missile: Model, crosshair: BillboardGui?)
 
 	local ring = part:FindFirstChild("Ring").ParticleEmitter
 	ring:Emit()
-	task.wait(0.1)
+	task.wait(0.25)
 	
 	local size = math.random(10, 40)
 	local explosion = missile["Explosion"]

@@ -16,7 +16,7 @@ local remote = ReplicatedStorage:WaitForChild("Remote") :: RemoteEvent
 
 -- Variables
 local skill: Frame = Players.LocalPlayer.PlayerGui:WaitForChild("ScreenGui").Skills:FindFirstChild("1")
-local activeSkill = "Fireball"
+local activeSkill = "Shield"
 local skillNames = {}
 for skillName, _ in pairs(Skills) do
 	table.insert(skillNames, skillName)
@@ -27,6 +27,7 @@ local function updateSkillGui(skillName: string)
 	updateViewport(skillName, skill.ViewportFrame)
 	skill:FindFirstChild("Title").Text = skillName
 end
+updateSkillGui(activeSkill)
 
 -- Sending (when you press Q)
 UserInputService.InputBegan:Connect(function(input: InputObject, gamepProcessed: boolean)
@@ -51,7 +52,7 @@ UserInputService.InputBegan:Connect(function(input: InputObject, gamepProcessed:
 	end
 end)
 
--- Receiving (when someone else sends a fireball)
+-- Receiving (when someone else uses a skill)
 remote.OnClientEvent:Connect(function(player: Player, skill: string, clientData: { any })
 	if Players.LocalPlayer == player then
 		return
