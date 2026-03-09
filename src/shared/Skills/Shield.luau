@@ -54,8 +54,14 @@ local function spawnShield(shieldTemplate: Model)
 	local shield = shieldTemplate:Clone()
 	shield.Parent = workspace.VFX
 
-	local bluePart = shield:FindFirstChild("BluePart")
-	local whitePart = shield:FindFirstChild("WhitePart")
+	local bluePart = shield:WaitForChild("BluePart")
+	if not bluePart then
+		return
+	end
+	local whitePart = shield:WaitForChild("WhitePart")
+	if not whitePart then
+		return
+	end
 
 	local initialSizes = {}
 	local startingWidth = 0.1
@@ -64,21 +70,21 @@ local function spawnShield(shieldTemplate: Model)
 	initialSizes[whitePart] = whitePart.Size
 
 	bluePart.Size = Vector3.new(startingWidth, initialSizes[bluePart].Y, startingWidth)
-	bluePart.Transparency = 1
+	bluePart.Transparency = 0
 	whitePart.Size = Vector3.new(startingWidth, initialSizes[whitePart].Y, startingWidth)
-	whitePart.Transparency = 1
+	whitePart.Transparency = 0
 
+
+	local tweenInfo = TweenInfo.new(
+		0.5, 
+		Enum.EasingStyle.Quad, 
+		Enum.EasingDirection.Out
+	)
 	task.spawn(function()
-		task.wait(1)
-		shield.Particles.White:Emit(5)
-		shield.Particles.Blue:Emit(5)
 
 		task.wait(0.1)
-		local tweenInfo = TweenInfo.new(
-			0.5, 
-			Enum.EasingStyle.Quad, 
-			Enum.EasingDirection.Out
-		)
+		shield:WaitForChild("Particles").White:Emit(5)
+		shield:WaitForChild("Particles").Blue:Emit(5)
 
 		TweenService:Create(bluePart, tweenInfo, {
 			Size = initialSizes[bluePart],
@@ -108,7 +114,7 @@ local function activateShield(character: Model)
 		return
 	end
 
-	local shieldCount = 3
+	local shieldCount = 5
 	local duration = 5
 	local radius = 10
 	local rotationSpeed = 2
@@ -146,7 +152,7 @@ local function activateShield(character: Model)
 	end)
 end
 
-function OrbitingShield:OnActivate()
+function OrbitingShield:ActionStart()
 	local character = Players.LocalPlayer.Character
 	if not character then
 		return
@@ -159,7 +165,8 @@ function OrbitingShield:OnActivate()
 	}
 end
 
-function OrbitingShield:OnMass()
+function OrbitingShield:ActionBroadcast(player: Player, skill: string, clientData: { any })
+	activateShield(clientData.TargetCharacter)
 end
 
 return OrbitingShield

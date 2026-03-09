@@ -74,7 +74,7 @@ local function shoot(origin: CFrame, target: CFrame, character: Model)--, root: 
 	end)
 end
 
-function Fireball:OnActivate()
+function Fireball:ActionStart()
 	local character = Players.LocalPlayer.Character
 	local root = character:FindFirstChild("HumanoidRootPart")
 	if not root then
@@ -91,7 +91,7 @@ function Fireball:OnActivate()
 	}
 end
 
-function Fireball:OnMass(player: Player, skill: string, clientData: { any })
+function Fireball:ActionBroadcast(player: Player, skill: string, clientData: { any })
 	local character = player.Character
 	local root = character:FindFirstChild("HumanoidRootPart")
 	if not root then

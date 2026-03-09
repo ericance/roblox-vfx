@@ -37,7 +37,7 @@ UserInputService.InputBegan:Connect(function(input: InputObject, gamepProcessed:
 
 	if input.KeyCode == Enum.KeyCode.Q then
 		-- activate skill
-		local clientData = Skills[activeSkill]:OnActivate()
+		local clientData = Skills[activeSkill]:ActionStart()
 		remote:FireServer(activeSkill, clientData)
 	elseif input.KeyCode == Enum.KeyCode.E then
 		-- switch the skill
@@ -58,5 +58,5 @@ remote.OnClientEvent:Connect(function(player: Player, skill: string, clientData:
 		return
 	end
 
-	Skills[skill]:OnMass(player, skill, clientData)
+	Skills[skill]:ActionBroadcast(player, skill, clientData)
 end)

@@ -1,6 +1,5 @@
 --[[
 	HomingMissile - Has a dumbFireDuration to fly straight for a second before seeing if a player is targeted. If a player is targeted, then that player will have a crosshair appear on their character. The homing missile will have a 4 second lockOnDuration to escape the missile which moves towards their direction
-
 ]]
 
 local TweenService = game:GetService("TweenService")
@@ -37,11 +36,11 @@ local function explode(missile: Model, crosshair: BillboardGui?)
 		return
 	end
 	
-	local part = missile.Part
+	local missilePart = missile.Part
 	missile.Back.Transparency = 1
-	part.Transparency = 1
+	missilePart.Transparency = 1
 
-	local ring = part:FindFirstChild("Ring").ParticleEmitter
+	local ring = missilePart:FindFirstChild("Ring").ParticleEmitter
 	ring:Emit()
 	task.wait(0.25)
 	
@@ -131,7 +130,7 @@ local function launch(origin: CFrame, target: Model, crosshair: BillboardGui?, s
 	end)
 end
 
-function HomingMissile:OnActivate()
+function HomingMissile:ActionStart()
 	local character = Players.LocalPlayer.Character
 	local root = character:FindFirstChild("HumanoidRootPart")
 	if not root then
@@ -162,7 +161,7 @@ function HomingMissile:OnActivate()
 	}
 end
 
-function HomingMissile:OnMass(player: Player, skill: string, clientData: { any })
+function HomingMissile:ActionBroadcast(player: Player, skill: string, clientData: { any })
 	local character = player.Character
 	if not character then 
 		return
