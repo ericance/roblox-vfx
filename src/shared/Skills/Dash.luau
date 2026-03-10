@@ -6,22 +6,19 @@ local Dash = {}
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 
-local DASH_DISTANCE = 20
-local SEED = os.time() * 1000
+local DASH_DISTANCE = 30
+-- local SEED = os.time() * 1000
 
---[[
-	The Slashes Script: While the dash tween is playing, have a script generate 3-4 thin, rotated Neon parts along the path. Use a random math function (math.random) to angle them diagonally. Use TweenService on these parts to tween their Transparency to 1 and their Size on the X-axis so they look like they are stretching out and vanishing.
-]]
-	
 local function createNeonPartLine(start: CFrame, seed: number)
-	-- What's awesome about seeds is I can have each player automatically rebuild this same particle position, orientation, and size by passing the seed to the server
 	local random = Random.new(seed)
 	local numberOfLines = random:NextInteger(10, 15)
 	
+	local dashLines = {}
+	
+	-- Create line
 	for i = 1, numberOfLines do
 		local line = Instance.new("Part")
 		line.Material = Enum.Material.Neon
-		-- Mix of colors for depth (mostly Cyan, sometimes white)
 		line.Color = random:NextNumber() > 0.8 and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(93, 0, 255)
 		line.Anchored = true
 		line.CanCollide = false
@@ -39,9 +36,7 @@ local function createNeonPartLine(start: CFrame, seed: number)
 			* CFrame.new(x, y, z)
 			* CFrame.Angles(tiltX, tiltY, 0)
 			
-		local startLength = random:NextInteger(12, 60)
-		local thickness = random:NextNumber(0.1, 0.3)
-		line.Size = Vector3.new(thickness, thickness, startLength)
+		line.Size = Vector3.new(0, 0, 0)
 		line.Parent = workspace.VFX
 		
 		local highlight = Instance.new("Highlight")
@@ -50,26 +45,58 @@ local function createNeonPartLine(start: CFrame, seed: number)
 		highlight.OutlineTransparency = 0.5
 		highlight.Parent = line
 		
-		local tweenDuration = random:NextNumber(0.5, 1)
-		local tweenInfo = TweenInfo.new(
-			tweenDuration, 
+		table.insert(dashLines, {
+			Part = line,
+			Highlight = highlight,
+			EndLength = random:NextInteger(2, 4)
+		})
+		
+		local growDuration = random:NextNumber(0.25, 0.5)
+		local growInfo = TweenInfo.new(
+			growDuration, 
 			Enum.EasingStyle.Quart, 
 			Enum.EasingDirection.Out
 		)
-		local endLength = random:NextInteger(2, 4)
-		local goal = {
-			CFrame = line.CFrame * CFrame.new(0, 0, -endLength),
-			Size = Vector3.new(0, 0, endLength),
-			Transparency = 1,
-		}
-		local tween = TweenService:Create(line, tweenInfo, goal)
-		TweenService:Create(highlight, tweenInfo, { OutlineTransparency = 1 }):Play()
-		tween:Play()
-		
-		tween.Completed:Connect(function()
-			line:Destroy()
-		end)
+		local targetLength = random:NextInteger(12, 60)
+		local targetThickness = random:NextNumber(0.05, 0.1)
+
+		TweenService:Create(line, growInfo, {
+			Size = Vector3.new(targetThickness, targetThickness, targetLength) 
+		}):Play()
 	end
+
+	-- Remove line
+	task.spawn(function()
+		-- Wait longest amount of time possible for grow tween to finish
+		task.wait(0.5)
+
+		local highlightDuration = 0.6
+		local highlightInfo = TweenInfo.new(highlightDuration, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+		for _, data in dashLines do
+			TweenService:Create(data.Highlight, highlightInfo, {
+				OutlineTransparency = 1 
+			}):Play()
+		end
+		task.wait(highlightDuration)
+		
+		local vanishDuration = 0.25
+		local vanishInfo = TweenInfo.new(vanishDuration, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+		for _, data in dashLines do
+			local line = data.Part
+			TweenService:Create(line, vanishInfo, {
+				CFrame = line.CFrame * CFrame.new(0, 0, -data.EndLength),
+				Size = Vector3.new(0, 0, data.EndLength),
+				Transparency = 1,
+			}):Play()
+		end
+		task.wait(vanishDuration)
+		
+		for _, data in dashLines do
+			data.Part:Destroy()
+		end
+	end)
+	
+	print(dashLines)
 end
 
 local function dash(root: Part)
