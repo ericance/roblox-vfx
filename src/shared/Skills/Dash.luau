@@ -6,12 +6,12 @@ local Dash = {}
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 
-local DASH_DISTANCE = 30
--- local SEED = os.time() * 1000
+local DASH_DISTANCE = 20
+local DASH_DURATION = 0.2
 
 local function createNeonPartLine(start: CFrame, seed: number)
 	local random = Random.new(seed)
-	local numberOfLines = random:NextInteger(10, 15)
+	local numberOfLines = random:NextInteger(5, 10)
 	
 	local dashLines = {}
 	
@@ -26,7 +26,7 @@ local function createNeonPartLine(start: CFrame, seed: number)
 		line.CanQuery = false
 		
 		local x = random:NextNumber(-5, 5)
-		local y = random:NextNumber(-4, 4)
+		local y = random:NextNumber(-5, 5)
 		local z = random:NextNumber(0, -DASH_DISTANCE)
 		
 		local tiltX = math.rad(random:NextNumber(-20, 20))
@@ -95,8 +95,38 @@ local function createNeonPartLine(start: CFrame, seed: number)
 			data.Part:Destroy()
 		end
 	end)
+end
+
+local function createParticles(root: Part)
+	if not root then
+		return
+	end
+
+	if not root:FindFirstChild("Particles") then
+		local particles = workspace.VFX.Dash.Particles:Clone()
+		particles.Dash.Smoke.Enabled = false
+		particles.Trail.Enabled = false
+		particles.Name = "Particles"
+		particles.Parent = root
+	end
+end
+
+local function playParticles(particles: Folder)
+	if not particles then
+		return
+	end
 	
-	print(dashLines)
+	if particles:FindFirstChild("Dash") and particles.Dash:FindFirstChild("Smoke") then
+		particles.Dash.Smoke:Emit(1)
+	end
+	
+	if particles:FindFirstChild("Trail") then
+		particles.Trail.Enabled = true
+		
+		task.delay(DASH_DURATION, function()
+			particles.Trail.Enabled = false
+		end)
+	end
 end
 
 local function dash(root: Part)
@@ -105,35 +135,37 @@ local function dash(root: Part)
 	end
 
 	local target: CFrame = root.CFrame * CFrame.new(0, 0, -DASH_DISTANCE)
+
 	local tweenInfo = TweenInfo.new(
 		0.2, 
 		Enum.EasingStyle.Quart, 
 		Enum.EasingDirection.InOut
 	)
-	local tween = TweenService:Create(root, tweenInfo, {
+	local dashTween = TweenService:Create(root, tweenInfo, {
 		CFrame = target,
 	})
 
 	-- Disable default physics or collisions by anchoring when dashing
 	root.Anchored = true
-	tween:Play()
+	dashTween:Play()
 
 	-- Raycast to see if something is blocking the way and cancel the tween if there is
 	local raycastParams = RaycastParams.new()
 	raycastParams.FilterType = Enum.RaycastFilterType.Exclude
-	raycastParams.FilterDescendantsInstances = { root }
+	raycastParams.FilterDescendantsInstances = { root, workspace.VFX }
 	local raycast = workspace:Raycast(root.Position, root.CFrame.lookVector * DASH_DISTANCE, raycastParams)
 	if raycast then
 		root.Anchored = false
-		tween:Cancel()
+		dashTween:Cancel()
 		return
 	end
  
-	local currentSeed = os.clock() * 10000
+	local currentSeed = os.clock() * 1000
 	-- If we get past the raycast then make the lines
 	createNeonPartLine(root.CFrame, currentSeed)
-
-	tween.Completed:Connect(function()
+	playParticles(root:FindFirstChild("Particles"), DASH_DURATION)
+	
+	dashTween.Completed:Connect(function()
 		root.Anchored = false
 	end)
 end
@@ -145,11 +177,12 @@ function Dash:ActionStart()
 		return
 	end
 
+	createParticles(root)
 	dash(root)
+
 	return {
 		Start = root.Position,
 		End = root.Position + (root.CFrame.LookVector) * DASH_DISTANCE,
-		Seed = SEED,
 	}
 end
 
