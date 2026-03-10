@@ -187,6 +187,14 @@ function Dash:ActionStart()
 end
 
 function Dash:ActionBroadcast(player: Player, skill: string, clientData: { any })
+	local character = player.Character
+	local root = character:FindFirstChild("HumanoidRootPart") :: BasePart
+	if not root then
+		return
+	end
+
+	createParticles(root)
+	dash(root)
 end
 
 return Dash
