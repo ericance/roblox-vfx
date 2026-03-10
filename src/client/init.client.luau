@@ -16,7 +16,7 @@ local remote = ReplicatedStorage:WaitForChild("Remote") :: RemoteEvent
 
 -- Variables
 local skill: Frame = Players.LocalPlayer.PlayerGui:WaitForChild("ScreenGui").Skills:FindFirstChild("1")
-local activeSkill = "Shield"
+local activeSkill = "Dash"
 local skillNames = {}
 for skillName, _ in pairs(Skills) do
 	table.insert(skillNames, skillName)
